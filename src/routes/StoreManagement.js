@@ -32,11 +32,12 @@ var provinceAbbr={'Alberta' : 'AB', 'British Columbia' : 'BC', 'Manitoba' : 'MB'
 @connect((state) => {
   return state
 })
+
 class DatatableComponent extends React.Component {
 
   constructor(props) {
     super(props);
-    // var stores = [[['mike', 'alonso' , 'ass@ass.com', '391 charles street', 'Kitchener', 'ON', 'N2G 1H6', '226-394-2981'], 'Manager', '15', '2.2 hrs', '2.1', 'B-' ]];
+    // var users = [[['mike', 'alonso' , 'ass@ass.com', '391 charles street', 'Kitchener', 'ON', 'N2G 1H6', '226-394-2981'], 'Manager', '15', '2.2 hrs', '2.1', 'B-' ]];
 
     this.state={
 
@@ -46,17 +47,17 @@ class DatatableComponent extends React.Component {
 
   _getModifiedCampaign(c) {
     var campaignsModified;
-    var {news, stores, stores, mgrs} = c;
+    var {news, users, stores, mgrs} = c;
     news = news || [];
-    stores = stores || [];
+    users = users || [];
     stores = stores || [];
     mgrs = mgrs || [];
     var newsLen = news.length;
-    // var userLen = c.stores.length;
-    //var userLen = stores.length;
+    // var userLen = c.users.length;
+    var userLen = users.length;
     var storesLen = stores.length;
     var manLen = mgrs.length;
-    return [c.name,c.banner, storesLen, manLen];
+    return [c.name,c.img_url, c.description, newsLen, storesLen, manLen, userLen];
   }
 
   componentDidUpdate(prevProps) {
@@ -74,7 +75,7 @@ class DatatableComponent extends React.Component {
     // }
   }
   componentDidMount() {
-    var Screen = this;
+    var userScreen = this;
 
     // $(ReactDOM.findDOMNode(this.example))
     //   .addClass('nowrap')
@@ -88,12 +89,12 @@ class DatatableComponent extends React.Component {
         console.log("method is " + method);
         console.log("url is " + url);
         console.log("data is " + JSON.stringify(data));
-        var url = 'http://34.205.72.170:3000/stores/change.json';
+        var url = 'http://34.205.72.170:3000/store/change.json';
         if (data.action == 'remove') {
-          url = 'http://34.205.72.170:3000/stores/remove';
+          url = 'http://34.205.72.170:3000/store/remove';
         } 
         if (data.action == 'create') {
-          url = 'http://34.205.72.170:3000/stores/create';
+          url = 'http://34.205.72.170:3000/store/create';
         } 
         console.log('url is... ' + url);
           $.ajax( {
@@ -103,7 +104,7 @@ class DatatableComponent extends React.Component {
             dataType: "json",
             success: function (json) {
                 success( json );
-                storeScreen.table.ajax.reload();
+                userScreen.table.ajax.reload();
             },
             error: function (xhr, error, thrown) {
                 error( xhr, error, thrown );
@@ -116,13 +117,61 @@ class DatatableComponent extends React.Component {
       idSrc: "id",
       fields: [
         { 
-          name: "storeName",
+          name: "banner",
+          label: 'Store Banner'
+         },
+        { 
+          name: "storeNumber",
+          label: 'Store Number'
+         },
+        { 
+          name: "name",
           label: 'Store Name'
          },
         { 
-          name: "banner",
-          label: 'Store Banner'
-         }]
+          name: "address.streetAddress",
+          label: 'Address'
+         },
+        { 
+          name: "address.city",
+          label: 'City'
+         },
+        { 
+          name: "address.province",
+          label: 'Province',
+          type:"select",
+          options:[
+            'AB',
+            'BC',
+            'MB',
+            'NB',
+            'NL',
+            'NS',
+            'NWT',
+            'NU',
+            'ON',
+            'PEI',
+            'QC',
+            'SK',
+            'YT'
+          ]
+         },
+        { 
+          name: "address.postalCode",
+          label: 'Postal Code'
+         },
+        // {
+        //   label:'User',
+        //   name: "user",
+        //   type: "select",
+        //   options: [
+        //     { label: "Toby", value: "Toby" },
+        //     { label: "Chunky", value: "Chunky" },
+        //     { label: "Brandon", value: "Brandon" }
+        //   ]
+        // },
+        // etc
+      ]
     });
 
     
@@ -132,7 +181,7 @@ class DatatableComponent extends React.Component {
       ajax: 
       function (data, callback, settings) {
        $.ajax({
-          url: 'http://34.205.72.170:3000/stores/show.json',
+          url: 'http://34.205.72.170:3000/store/show.json',
           success: function(d) {
             console.log("ajax complet!" + typeof(d));
             var dee = {d}
@@ -197,10 +246,56 @@ class DatatableComponent extends React.Component {
             width:50
         },
         {
-          title: "Store Name",
-          data: 'storeName',
-          width:50
-        }
+          title: "Store",
+          data: null,
+          editField: 'firstName',
+          render: function(data, type, row) {
+            var addr = data.address || {};
+            var name = data.name || 'New Store'
+            var storeNumber = data.storeNumber || '123'
+            var banner = data.banner || 'New banner'
+            var address = addr.streetAddress;
+            //var email = data.email || 'no email';
+            var city= addr.city;
+            var prov = addr.province;
+            var postal = addr.postalCode;
+            //var tel = data.mobilePhoneNumber;
+            var dataFilledOut = true;
+            
+
+            if (!address) {
+             return "<b><u>" +
+                  name +
+                 "</u></b><br/>" +
+                  storeNumber +
+                  "<br/>" +
+                  banner;
+            }
+            
+
+            return (
+              "<b><u>" +
+              name +
+              "</u></b><br/>" +
+              storeNumber +
+              "<br/>" +
+              banner +
+              "<br/>" +
+              address +
+              "<br/>" +
+              city +
+              " " +
+              prov
+              // "<br/>" +
+              // postal +
+            );
+          }
+        },
+        {
+          title: "User",
+          width: 120,
+          data:'access'
+        },
       ],
       // data: userScreen.state.users
     });
@@ -247,20 +342,24 @@ class DatatableComponent extends React.Component {
     this.NewStore.open();
   }
 
+  uploadStoreList() {
+    this.uploadStoreList.open();
+  }
+
   pickColor(name) {
     this.PickColor.open();
   }
   
-  newStore(v, desc){
+  newedUser(v, desc){
 
-    this.props.dispatch(actions.createStore({storeName: v, banner: banner}))
+    this.props.dispatch(actions.createCampaign({name: v, description: desc, merchant_account_id: this.state.accountID}))
     .then((resp) => {
-      console.log('dunno what this is ' + JSON.stringify(this.props.store.editing));
+      console.log('dunno what this is ' + JSON.stringify(this.props.campaigns.editing));
 
-      var campaignsModified = this.state.storeModified.slice(0);
-      console.log('old entries count ' + storeModified.length);
-      campaignsModified.unshift(this._getModifiedCampaign(this.props.store.editing));
-      console.log('new entries count ' + storesModfied.length)
+      var campaignsModified = this.state.campaignsModified.slice(0);
+      console.log('old entries count ' + campaignsModified.length);
+      campaignsModified.unshift(this._getModifiedCampaign(this.props.campaigns.editing));
+      console.log('new entries count ' + campaignsModified.length)
       this.table.clear().rows.add(campaignsModified).draw();
 
       this.setState({
@@ -276,38 +375,38 @@ class DatatableComponent extends React.Component {
       console.log('this state is now length ' + this.state.campaignsModified.length);
 
 
-    this.uploadPhoto();
-    this.NewStore.close();
+    this.uploadStoreList();
+    this.NewUser.close();
     });
   }
 
     uploadedPhoto(v) {
     var editor = Object.assign({}, this.state.editor);
     editor.img = v;
-    var storeScreen= this;
+    var userScreen= this;
     this.props.dispatch(actions.createCampaign(editor))
     .then(()=>{
-      var cIndex = storeScreen.state.campaignsModified.findIndex((ele, ind)=> {
+      var cIndex = userScreen.state.campaignsModified.findIndex((ele, ind)=> {
         console.log("ele " + ind);
         console.log("ele " + ele[0]);
-        console.log("name " + storeScreen.props.campaigns.editing.name);
-        if (ele[0] == storeScreen.props.campaigns.editing.name) {
+        console.log("name " + userScreen.props.campaigns.editing.name);
+        if (ele[0] == userScreen.props.campaigns.editing.name) {
           console.log("returning index ?? " + ind);
           return ele;
         }
       });
       console.log("cindex is " + cIndex);
-      var campaignsModified = storeScreen.state.campaignsModified.slice(0);
+      var campaignsModified = userScreen.state.campaignsModified.slice(0);
 
-      campaignsModified[cIndex][1] = storeScreen.props.campaigns.editing.img_url;
-      storeScreen.table.clear().rows.add(campaignsModified).draw();
-      storeScreen.setState({
+      campaignsModified[cIndex][1] = userScreen.props.campaigns.editing.img_url;
+      userScreen.table.clear().rows.add(campaignsModified).draw();
+      userScreen.setState({
         photoLoading: false,
         campaignsModified
       });
     });
 
-    storeScreen.setState({
+    userScreen.setState({
       editor,
       photoLoading:true,
     });
@@ -319,27 +418,29 @@ class DatatableComponent extends React.Component {
       <div>
       <Grid>
       <Row><Col md={4} mdOffset={4} lg={2} lgOffset={5} sm={4} smOffset={4} xs={4} xsOffset={4}>
+        <Button outlined lg style={{marginBottom: 2}} bsStyle='success' className='text-center'onClick={::this.newStore}>Add New Store</Button>
         </Col> 
       </Row>
       </Grid>
       <br/>
-      <NewStore ref={(c) => this.newStore = c} 
-        next={(v,multiStore) => {
+      <NewStore ref={(c) => this.NewStore = c} 
+        next={(v,multiUser) => {
           console.log("nexted bitches " + v);
-          if (multiStore) {
-            var banners = v.split(/[ ,]+/).filter(Boolean);
-            console.log("banners are " + banners);
-            while (banners.length > 0) {
-              this.editor.create(false).set('banner', banners[0]).submit();
+          if (multiUser) {
+            var emails = v.split(/[ ,]+/).filter(Boolean);
+            console.log("emails are " + emails);
+            while (emails.length > 0) {
+              this.editor.create(false).set('email', emails[0]).submit();
               emails.shift();
             }
           }
           else {
             this.editor.create(false)
+              .set('name', v.name)
+              .set('storeNumber', v.storeNumber)
               .set('banner', v.banner)
-              .set('storeName', v.storeName)
-              .set('number', v.storeNum)
-              .set('manager', v.manager)
+              //.set('wage', v.wage)
+              //.set('access', v.access)
               .submit();
           }
           this.NewStore.close();
@@ -353,7 +454,7 @@ class DatatableComponent extends React.Component {
             <th>News Items</th>
             <th>Stores</th>
             // <th>Managers</th>
-            <th>stores</th>
+            <th>Users</th>
           </tr>
         </thead>
         <tfoot>
@@ -383,7 +484,7 @@ class DatatableComponent extends React.Component {
   }
 }
 
-export default class storeManagement extends React.Component {
+export default class UserManagement extends React.Component {
   render() {
     
 
@@ -410,6 +511,39 @@ export default class storeManagement extends React.Component {
   }
 }
 
+class AddUserModal extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = { showModal: false };
+  }
+
+  close() {
+    this.setState({ showModal: false });
+  }
+
+  open() {
+    this.setState({ showModal: true });
+  }
+
+  render() {
+    return (
+      <Modal show={this.state.showModal} onHide={::this.close}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add user to store</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          One fine body...
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={::this.close} bsStyle='danger'>Close</Button>
+          <Button onClick={::this.close} bsStyle='primary'>Save Changes</Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
+}
+
 
 class NewStore extends React.Component {
   constructor(props) {
@@ -428,6 +562,10 @@ class NewStore extends React.Component {
     this.setState({ showModal: false });
   }
 
+  launchAddUserModal() {
+    this.addUserModal.open();
+  }
+
   open() {
     this.setState({ showModal: true });
   }
@@ -436,43 +574,43 @@ class NewStore extends React.Component {
     e.preventDefault();
     e.stopPropagation();
     var v = {
-      storeName: this.state.sname,
-      banner: this.state.banner,
-      manager: this.state.manager
-
+      name: this.state.value,
+      storeNumber: this.state.snum,
+      banner: this.state.sbanner,
+      
     }
-    var value = this.state.multiplestores ? this.state.mValue : v;
+    var value = this.state.multipleUsers ? this.state.mValue : v;
     console.log("value is " + JSON.stringify(value));
 
-    this.props.next(value, this.state.multiplestores);
+    this.props.next(value, this.state.multipleUsers);
   }
 
   renderAccess(){
+    //Need to import user list here and build the options based on those values
     return (
-      <FormControl  componentClass="select" name='accessLevel' className='required'
+      <FormControl  componentClass="select" name='access' className='required'
                       onChange={(event) => {
                         this.setState({
-                          accessLevel:event.target.value
+                          access:event.target.value
                         })
                       }}>
-                      //Have to add in the fetch for list of managers here
         <option value='Toby'>Toby</option>
         <option value='Chunky'>Chunky</option>
-        <option value='Test'>Test</option>
+        <option value='Brandon'>Brandon</option>
       </FormControl>
     );
   }
 
   renderForm(){
-    if (!this.state.multiplestores) {
+    if (!this.state.multipleUsers) {
       //not multi user
       return (
         <Form onSubmit={::this.next}>
         <Modal.Body>
-        <h4> Let's make this professional. Complete your new stores's information to create the account</h4>
+        <h4> Please enter your account information</h4>
           <FormGroup controlId='username'>
-            <ControlLabel>Email *</ControlLabel>
-            <FormControl type='banner' autoFocus name='name' className='required'
+            <ControlLabel>Store Name *</ControlLabel>
+            <FormControl type='text' autoFocus name='name' className='required'
               onChange={(event) => {
                 this.setState({
                   value:event.target.value
@@ -483,49 +621,29 @@ class NewStore extends React.Component {
             <Row>
               <Col xs={6} collapseLeft collapseRight>
                 <FormGroup>
-                   <ControlLabel>First Name</ControlLabel>
+                   <ControlLabel>Store Number</ControlLabel>
                     <FormControl type='text' name='descrp' className='required'
                       onChange={(event) => {
                         this.setState({
-                          name:event.target.value
+                          snum:event.target.value
                         })
                       }} />
                 </FormGroup>
               </Col>
               <Col xs={6} collapseRight>
                 <FormGroup>
-                  <ControlLabel>Last Name</ControlLabel>
+                  <ControlLabel>Store Banner</ControlLabel>
                   <FormControl type='text' name='descrp' className='required'
                     onChange={(event) => {
                       this.setState({
-                        snumber:event.target.value
+                        sbanner:event.target.value
                       })
                     }} />
                 </FormGroup>
               </Col>
             </Row>
           </Grid>
-                <FormGroup>
-                  <ControlLabel>Manager</ControlLabel>
-                    
-                      {this.renderManager()}
-
-
-                </FormGroup>
-
-
-                // <FormGroup>
-                //    <ControlLabel>Wage</ControlLabel>
-                //     <FormControl type='number' name='descrp' className='required'
-                //      min="0.01" step="0.01" max="2500"
-                //       onChange={(event) => {
-                //         this.setState({
-                //           wage:event.target.value
-                //         })
-                //       }} />
-                // </FormGroup>
-
-          <Button bsStyle='link' className='lightblue' onClick={()=>{this.setState({multiplestores:true, value:''})}}>Invite Multiple stores</Button>
+          <Button bsStyle='link' className='lightblue' onClick={()=>{this.setState({multipleUsers:true, value:''})}}>Add multiple stores</Button>
             </FormGroup>
           </Modal.Body>
         <Modal.Footer>
@@ -538,24 +656,26 @@ class NewStore extends React.Component {
       return (
         <Form onSubmit={::this.next}>
         <Modal.Body>
-        <h4> Enter stores' banners.</h4>
-          <FormGroup controlId='banner'>
-            <ControlLabel>Emails *</ControlLabel>
-            <FormControl type='banner' componentClass='textarea' style={{resize:'none', height:200}} autoFocus name='name' className='required'
+        <h4> Enter Stores' names seperated by commas or spaces.</h4>
+          <FormGroup controlId='username'>
+            <ControlLabel>Stores *</ControlLabel>
+            <FormControl type='email' componentClass='textarea' style={{resize:'none', height:200}} autoFocus name='name' className='required'
               onChange={(event) => {
                 var v = event.target.value;
-                var banners = v.split(/[ ,]+/).filter(Boolean);
+                var emails = v.split(/[ ,]+/).filter(Boolean);
 
-                //var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-z0-9-]+(\.[a-z0-9-]+)*$/i;
+                var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-z0-9-]+(\.[a-z0-9-]+)*$/i;
 
-                //var errorEmails = [];
+                var errorEmails = [];
 
                 emails.forEach(function(email) {
-                  var noError = true; //EMAIL_REGEXP.test(email.trim());  
+                  var noError = EMAIL_REGEXP.test(email.trim());  
                     if (!noError) {
                       errorEmails.push(email.trim());
                     }
                 }) ;
+
+                errorEmails = nil;
                 
                 if (errorEmails.length > 0) {
                   this.setState({
@@ -572,7 +692,7 @@ class NewStore extends React.Component {
           
           {this.state.mError ? "There's an issue with formatting for the following email: " + this.state.mError  : null}
           <br/>
-          <Button bsStyle='link' className='lightblue' onClick={()=>{this.setState({multiplestores:false, mValue:''})}}>Invite Single User</Button>
+          <Button bsStyle='link' className='lightblue' onClick={()=>{this.setState({multipleUsers:false, mValue:''})}}>Add a single store</Button>
           </FormGroup>
           </Modal.Body>
         <Modal.Footer>
@@ -587,7 +707,7 @@ class NewStore extends React.Component {
     return (
       <Modal backdrop={'static'} keyboard={false} show={this.state.showModal} onHide={::this.close}>
         <Modal.Header closeButton>
-          <Modal.Title>Add stores</Modal.Title>
+          <Modal.Title>Add Stores</Modal.Title>
         </Modal.Header>
         
         {this.renderForm()}
@@ -597,7 +717,7 @@ class NewStore extends React.Component {
   }
 }
 
-class UploadPhoto extends React.Component {
+class UploadStoreList extends React.Component {
   constructor(props) {
     super(props);
     var loading = props.loading || false;
@@ -632,7 +752,7 @@ close() {
   }
   
   onDrop(file){
-    var storeScreen = this;
+    var userScreen = this;
     console.log("dropped file " + JSON.stringify(file));
     // console.log("dropped file type is" + (file[0].preview.type));
     if (file.length>0) {
@@ -649,11 +769,11 @@ close() {
       reader.onloadend = function() {
         var base64data=reader.result;
         console.log( "base64 ready" );
-        storeScreen.setState({
+        userScreen.setState({
           loading:true,
           img:base64data
         });
-        storeScreen.props.uploadPhoto(base64data);
+        userScreen.props.uploadStoreList(base64data);
       }
 
     } else {
@@ -671,7 +791,7 @@ close() {
       return <img src={this.state.file.preview}/> 
     } else {
       console.log('file doesnt exist');
-      return <div style={{textAlign:'center'}}> <br/><br/>Drag & drop an image or <br/> click here to select an image to upload</div>
+      return <div style={{textAlign:'center'}}> <br/><br/>Drag & drop a storelist or <br/> click here to select a storelist to upload</div>
     }
   }
 
@@ -681,7 +801,7 @@ close() {
     return (
       <Modal  show={this.state.showModal} backdrop='static' onHide={::this.close}>
         <Modal.Header closeButton>
-          <Modal.Title>Upload a Photo for {this.state.passedProp.campaignName}</Modal.Title>
+          <Modal.Title>Upload a Storelist</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Grid>
@@ -689,7 +809,7 @@ close() {
             
               <Col sm={6} smOffset={3} xs={4} xsOffset={4} >
 
-                <DropZone multiple={false} onDrop={this.onDrop.bind(this)} accept={'image/*'}>
+                <DropZone multiple={false} onDrop={this.onDrop.bind(this)} accept={'csv/*'}>
                   <Loadable
                   active={this.state.loading}
                   spinner
@@ -699,16 +819,16 @@ close() {
                     ? 
                     <div style={{textAlign:'center'}}>
                       <img style={{objectFit:'contain', height:130, width: 190, margin:'auto', display:'block'}} src={this.state.file[0].preview}/> 
-                      Click here to upload a different image...
+                      Click here to upload a different storelist...
                     </div>
                     :
                     null                  
                   }
 
-                  { !this.state.file ? <div style={{textAlign:'center'}}><br/><br/> Drag & drop an image or <br/> click here to select an image to upload</div> : null }
+                  { !this.state.file ? <div style={{textAlign:'center'}}><br/><br/> Drag & drop an storelist or <br/> click here to select an storelist to upload</div> : null }
                   {this.state.error
                     ?
-                    <div style={{textAlign:'center'}}> <br/><br/><br/> Please upload a valid image. <br/> Click here to try again</div>
+                    <div style={{textAlign:'center'}}> <br/><br/><br/> Please upload a valid storelist. <br/> Click here to try again</div>
                     :
                     null
                   }
@@ -726,5 +846,3 @@ close() {
     );
   }
 }
-
-
